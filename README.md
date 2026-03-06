@@ -371,3 +371,19 @@ Si necesitas más detalles sobre algún paso en específico, házmelo saber.
 **Comentario:** No identifica de manera automática que toda la aplicación está desarrollada en Java, creo que es algo fácil de identificar, al igual que el framework. Da una respuesta totalmente errada esperando a que compilemos la aplicación en Python o Node. Luego de otros mensajes en la conversación puedo validar de que nunca analizó bien como para decir "esta aplicación está desarrollada en Spring Boot con Java 7", por ejemplo.
 
 **Comentarios genéricos:** es inevitable que el modo "Agente" vaya describiendo paso por paso. Para que aplique un cambio en un archivo específico desde el side nav con el chat, a veces son entre 2 y 3 mensajes para la solución esperada. A veces la respuesta se "rompe" por el formato .md que se espera, hasta incluso llegó al punto de marcar como "Potencialmente peligroso" una oración de "Si necesitas ayuda...", es confuso.
+
+
+
+**Cuarta prueba**
+
+Con una estructura de modelos 1) **Gemini 2.0 Flash** para chat y code (consumiendo mediante OpenRouter), 2) **All MiniLM** para el manejo de embedings y tomando como ejemplo el proyecto **Novatium**, se busca un poco más de contexto sobre como funciona:
+
+**Ejecución "Agente"**
+
+Enviamos como prompt:
+
+```
+teniendo en cuenta los estandares @Inv - estandares... y los cambios a realizar a nivel base de datos resumidos en este archivo @migrate-postgres.md haz los cambios necesarios a nivel de "repository" dentro del paquete com.midasconsultores.repository
+```
+
+**Comentario:** Comenzó a editar los archivos que estaban citados dentro de los .md como ejemplo y tuve que especificar que debía utilizar a modo ejemplo para realizar las modificaciones en todas las clases de tipo repository. Luego de esa aclaración hizo un buen barrido de las clases a modificar, por suerte no eran muchas las modificaciones que debía hacer (específicamente para poder incrementar la versión de Postgres y que siga siendo funcional) y pudo realizarlas con éxito. Lo que sí, me consumió todos los tokens.
