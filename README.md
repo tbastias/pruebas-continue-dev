@@ -314,7 +314,7 @@ public class EmpleadoController {
 **Comentario:** Se brindó contexto completo sobre cual archivo específico se quiere modificar, aún así generó uno nuevo y ni siquiera se encontraba dentro del paquete `controllers`. Para analizar el repositorio y entender cómo funcionan los módulos `web` y `core`, así como para compilar y desplegar la aplicación, sigue estos pasos sintetizados:
 
 
-**Tercer prueba**
+### Tercer prueba
 
 Con una estructura de modelos 1) **Mistral Medium** para chat, 2) **Codestral** para codear y 3) **All MiniLM** para el manejo de embedings y tomando como ejemplo el proyecto **Novatium**, se busca un poco más de contexto sobre como funciona:
 
@@ -374,7 +374,7 @@ Si necesitas más detalles sobre algún paso en específico, házmelo saber.
 
 
 
-**Cuarta prueba**
+### Cuarta prueba
 
 Con una estructura de modelos 1) **Gemini 2.0 Flash** para chat y code (consumiendo mediante OpenRouter), 2) **All MiniLM** para el manejo de embedings y tomando como ejemplo el proyecto **Novatium**, se busca un poco más de contexto sobre como funciona:
 
@@ -387,3 +387,11 @@ teniendo en cuenta los estandares @Inv - estandares... y los cambios a realizar 
 ```
 
 **Comentario:** Comenzó a editar los archivos que estaban citados dentro de los .md como ejemplo y tuve que especificar que debía utilizar a modo ejemplo para realizar las modificaciones en todas las clases de tipo repository. Luego de esa aclaración hizo un buen barrido de las clases a modificar, por suerte no eran muchas las modificaciones que debía hacer (específicamente para poder incrementar la versión de Postgres y que siga siendo funcional) y pudo realizarlas con éxito. Lo que sí, me consumió todos los tokens.
+
+### Quinta prueba
+
+Con una estructura de modelos 1) **Step 3.5 Flash** para chat y code (consumiendo mediante OpenRouter), 2) **All MiniLM** para el manejo de embedings y tomando como ejemplo el proyecto **Novatium**, se busca un poco más de contexto sobre como funciona:
+
+**Ejecución Agente**
+
+**Comentario:** se quiso continuar con los pasos realizados por el agente anterior pero este modelo free (Step 3.5 Flash) al parecer no matchea mucho en cuanto a los formatos que utiliza Continue Dev.
