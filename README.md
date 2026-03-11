@@ -395,3 +395,317 @@ Con una estructura de modelos 1) **Step 3.5 Flash** para chat y code (consumiend
 **Ejecución Agente**
 
 **Comentario:** se quiso continuar con los pasos realizados por el agente anterior pero este modelo free (Step 3.5 Flash) al parecer no matchea mucho en cuanto a los formatos que utiliza Continue Dev.
+
+---
+
+
+# Comparación de uso de Windsurf
+
+Para estas pruebas vamos autilizar unicamente el modelo **SWE** que es gratis para todos los planes que ofrece Windsurf. La idea es replicar las peticiones que se quisieron realizar con **Continue Dev** y comparar.
+
+---
+
+### Primer prueba
+
+**Modo Chat**
+
+1.a) Prompt: `necesito que apliquemos los estandares de calidad para los modulos "core" y "web", basate en este documento para responder @INV001 - Estándares para la integración BE-FE.md planifica lo que seria el proceso completo`
+
+- Respuesta:
+
+# Plan de Aplicación de Estándares de Calidad para Módulos Core y Web
+
+## Análisis Completo y Plan de Acción
+
+Basado en el documento de estándares @[INV001 - Estándares para la integración BE-FE.md] y el análisis de los módulos [novatium_core](cci:9://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_core:0:0-0:0) y [novatium_web](cci:9://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web:0:0-0:0), he identificado el estado actual y desarrollado un plan completo para aplicar los estándares de calidad.
+
+## Estado Actual Identificado
+
+### ✅ Aspectos Cumplidos
+1. **Estructura de respuesta estandarizada**: Ya existen [ApiResponse](cci:2://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/api/response/ApiResponse.java:4:0-53:1), [ApiError](cci:2://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/api/response/ApiError.java:4:0-28:1), y [PaginationInfo](cci:2://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/api/response/PaginationInfo.java:2:0-43:1) que coinciden con el estándar
+2. **Formato JSON**: Implementación correcta con `@JsonInclude(JsonInclude.Include.NON_NULL)`
+3. **Estructura básica**: Los campos `status`, `message`, `data`, [error](cci:1://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/api/response/ApiResponse.java:50:4-52:5), `pagination` están definidos
+
+### ❌ Desviaciones Críticas Encontradas
+
+#### 1. **Convenciones de URL**
+- **Problema**: URLs usan español y no siguen kebab-case consistentemente
+- **Ejemplos actuales**: `/empleado`, `/empleadosgrilla`, `/grupofamiliargrilla`
+- **Estándar requerido**: `/employees`, `/employees-grid`, `/family-group-grid`
+
+#### 2. **Métodos HTTP Inconsistentes**
+- **Problema**: Uso incorrecto de métodos HTTP
+- **Ejemplo**: `POST` para eliminar (`/removeusuario`) en lugar de `DELETE`
+- **Mezcla de `@RequestMapping` genérico en lugar de anotaciones específicas**
+
+#### 3. **Códigos de Estado Incorrectos**
+- **Problema**: Uso de `HttpStatus.ACCEPTED` (202) para respuestas exitosas
+- **Estándar**: `200` para éxito, `201` para creación, `400` para errores de cliente
+
+#### 4. **Estructura de Respuestas No Estandarizada**
+- **Problema**: Algunos endpoints devuelven `Map<String, Object>` en lugar de [ApiResponse](cci:2://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/api/response/ApiResponse.java:4:0-53:1)
+- **Ejemplo**: [empleadosGrilla()](cci:1://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/controller/EmpleadoController.java:493:1-520:2) devuelve `Map` en lugar de [ApiResponse<List<EmpleadoDto>>](cci:2://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/api/response/ApiResponse.java:4:0-53:1)
+
+#### 5. **Nomenclatura en Español**
+- **Problema**: Recursos y propiedades usan español
+- **Estándar**: Inglés técnico para todos los recursos
+
+## Plan de Implementación Detallado
+
+### Fase 1: Estandarización de Respuestas (Alta Prioridad)
+
+#### 1.1 Crear ResponseHelper
+```java
+@Component
+public class ResponseHelper {
+    
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(200, null, data, null, null);
+    }
+    
+    public static <T> ApiResponse<T> success(T data, PaginationInfo pagination) {
+        return new ApiResponse<>(200, null, data, null, pagination);
+    }
+    
+    public static <T> ApiResponse<T> created(T data) {
+        return new ApiResponse<>(201, "Resource created successfully", data, null, null);
+    }
+    
+    public static <T> ApiResponse<T> error(String key, String message, String traceId) {
+        ApiError error = new ApiError(key, message, traceId);
+        return new ApiResponse<>(400, null, null, error, null);
+    }
+    
+    public static <T> ApiResponse<T> error(String key, String message, String traceId, int status) {
+        ApiError error = new ApiError(key, message, traceId);
+        return new ApiResponse<>(status, null, null, error, null);
+    }
+}
+```
+
+#### 1.2 Modificar Endpoints para Usar ApiResponse
+- Cambiar `Map<String, Object>` → [ApiResponse<List<EmpleadoDto>>](cci:2://file:///home/tomas/Documents/Workspace/Novatium%202025/src_novatium/novatium_web/src/main/java/ar/com/midasconsultores/novatium/api/response/ApiResponse.java:4:0-53:1)
+- Cambiar `ResponseEntity<?>` → `ResponseEntity<ApiResponse<?>>`
+
+### Fase 2: Corrección de Métodos HTTP y Códigos de Estado
+
+#### 2.1 Mapeo de Métodos Actuales → Estándar
+| Actual | Estándar | Ejemplo |
+|--------|----------|---------|
+| `POST /removeusuario` | `DELETE /users/{id}` | Eliminar usuario |
+| `POST /empleado` | `POST /employees` | Crear empleado |
+| `POST /empleado/{id}` | `PUT /employees/{id}` | Actualizar empleado |
+| `GET /empleadosgrilla` | `GET /employees` | Listar empleados |
+
+#### 2.2 Códigos de Estado Correctos
+- **200**: GET, PUT, PATCH exitosos
+- **201**: POST creación exitosa
+- **204**: DELETE exitoso (sin contenido)
+- **400**: Bad Request (validación)
+- **404**: Not Found
+- **500**: Internal Server Error
+
+### Fase 3: Estandarización de URLs y Nomenclatura
+
+#### 3.1 Conversión de URLs (Español → Inglés)
+| URL Actual | URL Estándar |
+|------------|--------------|
+| `/empleado` | `/employees` |
+| `/empleados` | `/employees` |
+| `/empleadosgrilla` | `/employees` |
+| `/cliente` | `/clients` |
+| `/clientes` | `/clients` |
+| `/usuarios` | `/users` |
+| `/beneficios` | `/benefits` |
+| `/obrassociales` | `/health-insurances` |
+
+#### 3.2 Estructura de Recursos RESTful
+```
+GET    /employees           → Listar todos
+GET    /employees/{id}      → Obtener uno
+POST   /employees           → Crear
+PUT    /employees/{id}      → Actualizar completo
+PATCH  /employees/{id}      → Actualizar parcial
+DELETE /employees/{id}      → Eliminar
+```
+
+### Fase 4: Implementación de Logging con Trace ID
+
+#### 4.1 Filtro para Trace ID
+```java
+@Component
+public class TraceIdFilter implements Filter {
+    
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
+        String traceId = UUID.randomUUID().toString();
+        MDC.put("traceId", traceId);
+        
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            MDC.remove("traceId");
+        }
+    }
+}
+```
+
+#### 4.2 Estructura de Logs Estandarizada
+```json
+{
+  "timestamp": "2026-03-11T14:54:00Z",
+  "traceId": "e04775ed-310d-4227-b914-394bab543aad",
+  "level": "ERROR",
+  "message": "Error creating employee",
+  "service": "EmployeeService",
+  "user_id": 123,
+  "details": {
+    "error_code": "EMP_001",
+    "error_message": "Invalid client for second assignment",
+    "stack_trace": "..."
+  }
+}
+```
+
+### Fase 5: Paginación Estandarizada
+
+#### 5.1 Parámetros de Paginación
+- `page`: número de página (default: 1)
+- `size`: tamaño de página (default: 10)
+- `sort`: campo de ordenamiento (default: `createdAt`)
+- `dir`: dirección (ASC|DESC, default: `ASC`)
+
+#### 5.2 Implementación en Controllers
+```java
+@GetMapping("/employees")
+public ResponseEntity<ApiResponse<List<EmployeeDto>>> getEmployees(
+    @RequestParam(defaultValue = "1") int page,
+    @RequestParam(defaultValue = "10") int size,
+    @RequestParam(defaultValue = "createdAt") String sort,
+    @RequestParam(defaultValue = "ASC") String dir) {
+    
+    PaginationInfo pagination = new PaginationInfo(dir, sort, count, page, size, totalPages);
+    return ResponseEntity.ok(ResponseHelper.success(employees, pagination));
+}
+```
+
+### Fase 6: Seguridad y Validación
+
+#### 6.1 Mejores Practices JWT
+- Usar algoritmos RS256 o ES256
+- Expiración corta (15-30 min)
+- Refresh tokens
+- No incluir datos sensibles en payload
+
+#### 6.2 Validación Estandarizada
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+        String traceId = MDC.get("traceId");
+        return ResponseEntity.badRequest()
+            .body(ResponseHelper.error("VALIDATION_ERROR", "Invalid request parameters", traceId));
+    }
+}
+```
+
+## Cronograma de Implementación
+
+| Semana | Fase | Tareas Clave |
+|--------|------|--------------|
+| 1 | Fase 1-2 | ResponseHelper, corrección métodos HTTP |
+| 2 | Fase 3 | Estandarización URLs y nomenclatura |
+| 3 | Fase 4 | Implementación logging con trace ID |
+| 4 | Fase 5-6 | Paginación y seguridad |
+| 5 | Fase 7-8 | Documentación y pruebas |
+
+## Impacto y Beneficios
+
+### Inmediatos
+- **Consistencia**: Todas las APIs seguirán el mismo estándar
+- **Mantenibilidad**: Código más predecible y fácil de mantener
+- **Colaboración**: Equipos pueden trabajar en paralelo
+
+### Mediano Plazo
+- **Escalabilidad**: Fácil agregar nuevos endpoints
+- **Documentación**: Automática y consistente
+- **Testing**: Estructura predecible facilita pruebas
+
+### Largo Plazo
+- **Interoperabilidad**: Reutilización entre proyectos
+- **Onboarding**: Nuevos desarrolladores se adaptan rápido
+- **Calidad**: Reducción de errores y mejora de robustez
+
+## Próximos Pasos Inmediatos
+
+1. **Crear ResponseHelper** y utilidades de respuesta estandarizada
+2. **Modificar EmpleadoController** como caso piloto
+3. **Implementar filtro de Trace ID** para logging
+4. **Documentar nuevos endpoints** con estándares
+
+¿Deseas que comience con la implementación de alguna fase específica o prefieres revisar algún aspecto particular del plan?
+
+- **Comentario**: Hay inconsistencias en la respuesta en algunos detalles, pero a grandes rasgos está bastante bien. Hasta incluso propone el uso de `ResponseHelper` para implementar el uso de `ApiResponse`. También el manejo de logs está mejorado a partir de imprimir el `traceId` de cada petición. La estimación de tiempos es demasiada dilatada para lo que se espera realizar, propone un desarrollo de 5 semanas solo para aplicar estándares a los endpoints, nada sobre lógica de otros componentes.
+
+1.b) Prompt: `haciendo énfasis únicamente en el uso de estándares, vuelve a enumerar los pasos a seguir, en caso de ser necesario agrega algún paso que defina cuales cambios a nivel de @Service hay que realizar. devuelve una respuesta corta y consisa para que luego podamos aplicar modo agente de manera facil.`
+
+- Respuesta:
+
+# Plan Simplificado de Estandarización - Pasos a Seguir
+
+## Fase 1: Estandarización de Respuestas API
+1. **Crear ResponseHelper** con métodos estándar (success, error, created)
+2. **Reemplazar todos los Map<String, Object>** por ApiResponse<T> en controllers
+3. **Corregir códigos HTTP**: 200/201 para éxito, 400/404/500 para errores
+
+## Fase 2: Estandarización de Endpoints REST
+4. **Convertir @RequestMapping genéricos** a anotaciones específicas (@GetMapping, @PostMapping, etc.)
+5. **Estandarizar métodos HTTP**: DELETE para eliminaciones, PUT/PATCH para actualizaciones
+6. **Corregir URLs**: español → inglés, sustantivos en plural, kebab-case
+
+## Fase 3: Estandarización @Service Layer
+7. **Estandarizar nombres de métodos** en inglés (getEmpleadoById → getEmployeeById)
+8. **Implementar manejo de excepciones** con trace IDs
+9. **Agregar logging estructurado** en todos los servicios
+10. **Estandarizar DTOs** con camelCase y nombres en inglés
+
+## Fase 4: Validación y Documentación
+11. **Implementar @RestControllerAdvice** para manejo centralizado de errores
+12. **Agregar validaciones @Valid** en todos los endpoints
+13. **Documentar endpoints** con estándares definidos
+
+## Cambios Específicos @Service:
+- **Nomenclatura**: métodos en inglés, camelCase
+- **Excepciones**: lanzar excepciones personalizadas con trace IDs
+- **Logging**: estructura JSON con timestamp, traceId, level, message
+- **Retorno**: DTOs estandarizados, never entities directas
+
+**Total: 13 pasos prioritarios**
+
+- **Comentario**: Ahora la respuesta es mucho más cercana a lo que necesitamos como para empezar a implementar el modo agente.
+
+**Modo Agente**
+
+2.a) Prompt: `implementa la fase 1`
+
+- **Comentario**: solamente ejecutó sobre los ejemplos en vez de a todos los controladores. El 'traceId' lo devuelve en todo el tipo de respuestas. No implementó el uso de `@ControllerAdvice`. El resto ok.
+
+2.b) Prompt: `aplica los cambios a todos los rest endpoints de la aplicacion. aplica el uso de @controlleradvice y no uses el traceId para las respuestas 2XX. usalo solo cuando se quiere loggear algo por consola o se quiere devolver una respuesta de error.`
+
+- **Comentario**: para realizar algunos cambios generó un archivo `.sh` que ejecutó para luego reutilizar con el resto de controllers. Se valida y todo ok. No me hizo caso en cuanto a eliminar el traceId de respuestas 2XX. Generó `BusinessException` (internamente entendido como `ServiceException`). Como respuesta final brinda 4 pasos a seguir que son ejecutados en el siguiente paso.
+
+2.c) Prompt: `aplica los 4 proximos pasos, elimina los traceId de las respuestas 2XX`
+
+- **Comentario**: Hace falta un paso más para terminar de aplicar los estándares, lo único que hizo fue actualizar las url con la nueva nomenclatura (en inglés, kebab case)
+
+2.d) Prompt: `aplica el correcto uso de ApiResponse en todos los endpoints rest`
+
+- **Comentario**: terminó de aplicar los cambios al resto de endpoints, donde había aplicado bien el formato para paginador, corrigió de una manera que no respeta los estándares. Generó demasiadas clases para tipo excepcion.
+
+## Conclusión
+
+Requiere revisión cada paso, pero a grandes rasgos el uso del modelo gratis que provee Windsurf funciona bastante bien tanto para planear como para ejecutar. Hay que ser más específico. Como recomendación habría que manera .md para mantener la estructura en cuanto las respuestas. Generó muchos archivos .sh que luego no se borran. Se pudieron aplicar estos cambios en un lapso de mas o menos 2 horas, un gran avance para una estimación inicial de 5 semanas que comentó el plugin.
+
+---
