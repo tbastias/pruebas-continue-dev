@@ -405,7 +405,7 @@ Con una estructura de modelos 1) **Step 3.5 Flash** para chat (consumiendo media
 
 Prompt: `teniendo en cuenta los estandares @INV001 - Estandares... y los cambios a realizar a nivel base de datos resumidos en este archivo @migrate-postgres.md`
 
-**Comentario:** se mejoró bastante el uso de la herramienta agregando las tools. Editó correctamente los archivos necesarios y los cambios son coherentes con lo que se espera dentro del uso de estandares BE/FE.
+**Comentario:** se mejoró bastante el uso de la herramienta agregando las tools. Editó correctamente los archivos necesarios y los cambios son coherentes con lo que se espera dentro del uso de estandares BE/FE. No se pudo completar y dejar ejecutar todo, primero porque los archivos arrobados tenian instrucciones que hicieron modificar el repositorio completo a Continue, además de que cada cambio tiene varias peticiones en fila y OpenRouter llegó al límite.
 
 ---
 
