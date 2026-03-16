@@ -396,6 +396,17 @@ Con una estructura de modelos 1) **Step 3.5 Flash** para chat y code (consumiend
 
 **Comentario:** se quiso continuar con los pasos realizados por el agente anterior pero este modelo free (Step 3.5 Flash) al parecer no matchea mucho en cuanto a los formatos que utiliza Continue Dev.
 
+
+### Sexta prueba
+
+Con una estructura de modelos 1) **Step 3.5 Flash** para chat (consumiendo mediante OpenRouter) 2) **Codestral** para code (consumiendo desde MIstral) 3) **All MiniLM** para el manejo de embedings y tomando como ejemplo el proyecto **Novatium**, e implementando también el uso de tools como `@modelcontextprotocol/server-filesystem` y `@modelcontextprotocol/server-github`:
+
+**Ejecución Agente**
+
+Prompt: `teniendo en cuenta los estandares @INV001 - Estandares... y los cambios a realizar a nivel base de datos resumidos en este archivo @migrate-postgres.md`
+
+**Comentario:** se mejoró bastante el uso de la herramienta agregando las tools. Editó correctamente los archivos necesarios y los cambios son coherentes con lo que se espera dentro del uso de estandares BE/FE.
+
 ---
 
 
